@@ -3,7 +3,7 @@
 
 pkgname=mendeleydesktop
 pkgver=1.19.1
-pkgrel=1
+pkgrel=2
 pkgdesc="Academic software for managing and sharing research papers (desktop client)"
 url=http://www.mendeley.com/release-notes/
 arch=(i686 x86_64)
@@ -20,13 +20,6 @@ fi
 
 prepare() {
     cd "$pkgname-$pkgver-linux-$CARCH"
-    # Using shared libraries so remove the bundled ones
-    rm -rf lib/cpp lib/qt lib/ssl lib/libpng12.so.0 lib/mendeleydesktop/plugins
-    rm -rf lib/mendeleydesktop/libexec/resources
-    rm -rf lib/mendeleydesktop/libexec/translations/qtwebengine_locales
-
-    # TODO Run install-mendeley-link-handler.sh for gconf or just remove it?
-    rm bin/install-mendeley-link-handler.sh
 
     # # Remove unneeded lines if gconf is not installed.
     # if ! which gconftool-2 &>/dev/null;then
@@ -38,22 +31,8 @@ prepare() {
 package() {
     cd "$pkgname-$pkgver-linux-$CARCH"
 
-    # Link system Qt
-    ln -s /usr/share/qt/resources \
-          lib/mendeleydesktop/libexec/
-    ln -s /usr/share/qt/translations/qtwebengine_locales \
-          lib/mendeleydesktop/libexec/translations/
-
     install -d "$pkgdir/opt/$pkgname/"
     cp -a bin lib share "$pkgdir/opt/$pkgname/"
-
-    # Replace default python laucher with custom bash
-cat <<'EOF' > "$pkgdir/opt/$pkgname/bin/mendeleydesktop"
-#!/bin/bash
-export LD_LIBRARY_PATH=/usr/lib/:/opt/mendeleydesktop/lib/:/usr/lib/qt/
-export MENDELEY_BUNDLED_QT_PLUGIN_PATH=/lib/qt/plugins/
-/opt/mendeleydesktop/lib/mendeleydesktop/libexec/mendeleydesktop.x86_64 "$@"
-EOF
 
     install -d "$pkgdir"/usr/bin
     ln -s "/opt/$pkgname/bin/mendeleydesktop" \
